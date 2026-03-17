@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Device</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #020509;
+            --surface: #0b1120;
+            --cyan: #00e5ff;
+            --violet: #9c42ff;
+            --rose: #ff2d6b;
+            --lime: #aaff00;
+            --text: #e8f0fe;
+            --muted: #4a5568;
+            --glass: rgba(11, 17, 32, 0.78);
+            --border: rgba(0, 229, 255, 0.12);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* ── CUSTOM CURSOR ── */
+        #cur-ring {
+            position: fixed; top: 0; left: 0;
+            width: 40px; height: 40px;
+            border: 1.5px solid var(--cyan); border-radius: 50%;
+            pointer-events: none; z-index: 99999;
+            transform: translate(-50%, -50%);
+            transition: width .3s, height .3s, border-color .3s, background .3s;
+            mix-blend-mode: screen;
+        }
+        #cur-dot {
+            position: fixed; top: 0; left: 0;
+            width: 6px; height: 6px;
+            background: var(--cyan); border-radius: 50%;
+            pointer-events: none; z-index: 100000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 12px var(--cyan);
+        }
+        body:has(a:hover) #cur-ring,
+        body:has(button:hover) #cur-ring {
+            width: 64px; height: 64px;
+            background: rgba(255,45,107,.06);
+            border-color: var(--rose);
+        }
+
+        /* Grid */
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,229,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,.035) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 40%, transparent 100%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Orbs */
+        .orb {
+            position: fixed; border-radius: 50%;
+            filter: blur(110px); pointer-events: none; z-index: 0;
+            animation: orbDrift 22s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(255,45,107,.18), transparent 70%);
+            top: -150px; left: -100px;
+        }
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(156,66,255,.18), transparent 70%);
+            bottom: -100px; right: -80px; animation-delay: -10s;
+        }
+        @keyframes orbDrift {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(36px,36px) scale(1.07); }
+        }
+
+        /* ── CONTAINER ── */
+        .container {
+            background-color: var(--glass);
+            padding: 48px 44px 44px;
+            border-radius: 28px;
+            box-shadow: 0 40px 100px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+            border: 1px solid rgba(255,45,107,.18);
+            position: relative; z-index: 10;
+            backdrop-filter: blur(24px);
+            overflow: hidden;
+            animation: cardIn .85s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(36px) scale(.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .container::before {
+            content: '';
+            position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--rose), var(--violet), transparent);
+        }
+
+        /* ── HEADER ── */
+        .delete-header {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 14px;
+            margin-bottom: 28px;
+            animation: fadeUp .6s ease .2s both;
+        }
+        .delete-icon {
+            width: 60px; height: 60px;
+            background: rgba(255,45,107,.1);
+            border: 1px solid rgba(255,45,107,.25);
+            border-radius: 50%; display: grid; place-items: center;
+            font-size: 1.4rem; color: var(--rose);
+            position: relative; animation: iconPulse 3s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(255,45,107,.3); }
+            50%      { box-shadow: 0 0 0 10px rgba(255,45,107,0); }
+        }
+        .delete-icon::before, .delete-icon::after {
+            content: ''; position: absolute; inset: 0;
+            border-radius: 50%; border: 1px solid rgba(255,45,107,.25);
+            animation: iconRipple 2.5s ease-out infinite;
+        }
+        .delete-icon::after { animation-delay: 1.2s; }
+        @keyframes iconRipple {
+            0%   { transform: scale(1); opacity: .6; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        h1 {
+            color: var(--rose);
+            text-align: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6rem; font-weight: 800; letter-spacing: -.5px;
+            background: linear-gradient(135deg, var(--rose), #ff7a9a);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── WARNING MESSAGE — keeps .warning-message ── */
+        .warning-message {
+            background-color: rgba(255,45,107,.07);
+            border: 1px solid rgba(255,45,107,.22);
+            color: #c9556f;
+            padding: 15px 18px;
+            border-radius: 14px;
+            margin: 20px 0;
+            font-size: .85rem; line-height: 1.6;
+            display: flex; gap: 12px; align-items: flex-start;
+            animation: fadeUp .6s ease .3s both;
+        }
+        .warning-message i {
+            color: var(--rose); font-size: 1rem; flex-shrink: 0;
+            margin-top: 1px; filter: drop-shadow(0 0 5px var(--rose));
+        }
+        .warning-message strong { color: var(--rose); font-weight: 600; }
+
+        /* ── DEVICE INFO — keeps .device-info ── */
+        .device-info {
+            background-color: rgba(255,255,255,.02);
+            border: 1px solid rgba(255,255,255,.06);
+            padding: 15px 20px;
+            border-radius: 14px;
+            margin: 20px 0;
+            animation: fadeUp .6s ease .38s both;
+        }
+        .device-info p {
+            margin: 0;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+            display: flex; align-items: center; gap: 12px;
+            font-size: .88rem; color: #8fa8c4;
+        }
+        .device-info p:last-child { border-bottom: none; padding-bottom: 0; }
+        .device-info p:first-child { padding-top: 0; }
+        .device-info p i {
+            color: var(--rose); font-size: .8rem; opacity: .6;
+            width: 14px; flex-shrink: 0;
+        }
+        .device-info p strong {
+            color: #6b7fa3; font-size: .72rem;
+            text-transform: uppercase; letter-spacing: .6px;
+            font-family: 'Syne', sans-serif; font-weight: 600;
+            min-width: 100px;
+        }
+        .device-info .val { color: var(--text); font-weight: 500; }
+
+        /* Confirm text */
+        .confirm-text {
+            text-align: center; color: var(--muted);
+            font-size: .85rem; margin: 6px 0 2px;
+            animation: fadeUp .6s ease .45s both;
+        }
+
+        /* ── BUTTON GROUP — keeps .button-group .btn-delete .btn-cancel ── */
+        .button-group {
+            display: flex; gap: 12px; justify-content: center;
+            margin-top: 28px; padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,.05);
+            animation: fadeUp .6s ease .52s both;
+        }
+
+        button, a {
+            padding: 13px 28px;
+            border-radius: 12px; text-decoration: none;
+            cursor: none; border: none; font-size: .93rem;
+            font-family: 'Syne', sans-serif; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: transform .3s, box-shadow .3s;
+            position: relative; overflow: hidden; letter-spacing: .3px;
+        }
+        button::before, a::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+            opacity: 0; transition: opacity .3s;
+        }
+        button:hover::before, a:hover::before { opacity: 1; }
+
+        .btn-delete {
+            background-color: var(--rose);
+            background: linear-gradient(135deg, var(--rose), #c41f52);
+            color: white;
+            box-shadow: 0 0 24px rgba(255,45,107,.3);
+            flex: 1; justify-content: center;
+        }
+        .btn-delete:hover {
+            background-color: #b71c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 36px rgba(255,45,107,.5);
+            color: white;
+        }
+        .btn-delete:active { transform: translateY(0); }
+
+        .btn-cancel {
+            background-color: transparent;
+            border: 1px solid rgba(255,255,255,.1) !important;
+            color: var(--muted); white-space: nowrap;
+        }
+        .btn-cancel:hover {
+            background-color: rgba(255,255,255,.04);
+            border-color: rgba(255,255,255,.22) !important;
+            color: #fff; transform: translateY(-2px);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            #cur-ring, #cur-dot { display: none; }
+            body { cursor: auto; }
+            * { cursor: auto !important; }
+            .button-group { flex-direction: column; }
+            button, a { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            body { margin: 20px auto; }
+            .container { padding: 36px 22px 32px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cur-ring"></div>
+<div id="cur-dot"></div>
+
+<!-- Orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- ── CONTAINER — original structure untouched ── -->
+<div class="container">
+
+    <!-- Header -->
+    <div class="delete-header">
+        <div class="delete-icon"><i class="fa-solid fa-trash-can"></i></div>
+        <h1>Delete Device</h1>
+    </div>
+
+    <!-- ── WARNING MESSAGE — original text untouched ── -->
+    <div class="warning-message">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span><strong>Warning:</strong> This action cannot be undone. All data associated with this device will be permanently deleted.</span>
+    </div>
+
+    <!-- ── DEVICE INFO — original variables untouched ── -->
+    <div class="device-info">
+        <p>
+            <i class="fa-solid fa-tag"></i>
+            <strong>Device Name</strong>
+            <span class="val">{{ device.device_name }}</span>
+        </p>
+        <p>
+            <i class="fa-solid fa-microchip"></i>
+            <strong>Device Type</strong>
+            <span class="val">{{ device.device_type }}</span>
+        </p>
+        <p>
+            <i class="fa-solid fa-circle-dot"></i>
+            <strong>Status</strong>
+            <span class="val">{{ device.status }}</span>
+        </p>
+        <p>
+            <i class="fa-solid fa-fingerprint"></i>
+            <strong>Device ID</strong>
+            <span class="val">{{ device.device_id }}</span>
+        </p>
+    </div>
+
+    <!-- Confirm text — original untouched -->
+    <p style="text-align: center; color: #666;" class="confirm-text">Are you sure you want to delete this device?</p>
+
+    <!-- ── FORM — original code untouched ── -->
+    <form method="POST">
+        {% csrf_token %}
+        <div class="button-group">
+            <button type="submit" class="btn-delete">
+                <i class="fa-solid fa-trash-can"></i> Yes, Delete Device
+            </button>
+            <a href="{% url 'device_list' %}" class="btn-cancel">
+                <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    const ring = document.getElementById('cur-ring');
+    const dot  = document.getElementById('cur-dot');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px';
+        dot.style.top  = my + 'px';
+    });
+
+    (function animCursor() {
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        requestAnimationFrame(animCursor);
+    })();
+</script>
+
+</body>
+</html>

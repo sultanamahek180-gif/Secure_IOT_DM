@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Device Access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+        .btn-cancel {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-cancel:hover {
+            background-color: #da190b;
+        }
+        .error-messages {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Update Device Access</h1>
+
+        {% if form.non_field_errors %}
+        <div class="error-messages">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.user.id_for_label }}">User:</label>
+                {{ form.user }}
+                {% if form.user.errors %}
+                    <div class="error-messages">{{ form.user.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.device.id_for_label }}">Device:</label>
+                {{ form.device }}
+                {% if form.device.errors %}
+                    <div class="error-messages">{{ form.device.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Permissions:</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        {{ form.can_read }}
+                        <label for="{{ form.can_read.id_for_label }}">Can Read</label>
+                    </div>
+                    <div class="checkbox-item">
+                        {{ form.can_write }}
+                        <label for="{{ form.can_write.id_for_label }}">Can Write</label>
+                    </div>
+                </div>
+                {% if form.can_read.errors %}
+                    <div class="error-messages">{{ form.can_read.errors }}</div>
+                {% endif %}
+                {% if form.can_write.errors %}
+                    <div class="error-messages">{{ form.can_write.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">Update Access</button>
+                <button type="button" class="btn-cancel" onclick="history.back()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Data - {{ device.device_name }}</title>
+    <style>       
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .header { background-color: #333; color: white; padding: 20px; margin-bottom: 30px; border-radius: 5px; }
+        .header h1 { font-size: 28px; }
+        table { width: 100%; border-collapse: collapse; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 5px; overflow: hidden; }
+        thead { background-color: #4CAF50; color: white; }
+        th { padding: 15px; text-align: left; font-weight: bold; }
+        td { padding: 12px 15px; border-bottom: 1px solid #ddd; }
+        tr:hover { background-color: #f9f9f9; }
+        .data-cell { word-break: break-word; max-width: 300px; }
+        .timestamp { color: #666; font-size: 13px; }
+        .no-data { text-align: center; padding: 40px; color: #999; }
+        .btn { text-decoration: none; padding: 6px 12px; border-radius: 4px; margin-right: 5px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .text-end { text-align: right; }
+    </style>
+</head>
+<body>
+
+<!-- Login / Logout Buttons -->
+<div style="position:absolute; top:20px; right:30px;">
+    {% if user.is_authenticated %}
+        <span style="margin-right:10px; color:white; font-weight:bold;">
+            Welcome {{ user.username }}
+        </span>
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    {% else %}
+        <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+    {% endif %}
+</div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Device Data Logs</h1>
+            <p style="color:#ccc;">Device: {{ device.device_name }} (ID: {{ device.device_id }})</p>
+        </div>
+
+        <div class="text-end" style="margin-bottom: 20px;">
+            <a href="{% url 'devicedata_create' device.device_id %}" class="btn btn-primary">Add New Data</a>
+            <a href="{% url 'device_list' %}" class="btn btn-secondary">Back to Devices</a>
+        </div>
+
+        {% if data_entries %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data ID</th>
+                        <th>Status</th>
+                        <th>Temp (°C)</th>
+                        <th>Humidity (%)</th>
+                        <th>Room</th>
+                        <th>Last Updated</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data_entries %}
+                       <tr>
+                            <td>{{ item.data_id }}</td>
+                            <td>{{ item.data.status }}</td>
+                            <td>{{ item.data.sensors.0.value }}</td>
+                            <td>{{ item.data.sensors.1.value }}</td>
+                            <td>{{ item.data.location.room }}</td>
+                            <td>{{ item.data.lastUpdated }}</td>
+
+                            <td>
+                                <a href="{% url 'devicedata_update' item.data_id %}" class="btn btn-warning">Edit</a>
+                                <a href="{% url 'devicedata_delete' item.data_id %}" class="btn btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">
+                <p>No device data found for this device.</p>
+                <a href="{% url 'devicedata_create' device.device_id %}" class="btn btn-primary">Add Data</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

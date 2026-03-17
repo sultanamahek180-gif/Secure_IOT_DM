@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Device Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-submit {
+            background-color: #0066cc;
+            color: white;
+        }
+        .btn-submit:hover {
+            background-color: #0052a3;
+        }
+        .btn-cancel {
+            background-color: #ddd;
+            color: #333;
+        }
+        .btn-cancel:hover {
+            background-color: #ccc;
+        }
+        .error-message {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Device Data</h1>
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="device">Device:</label>
+                {{ form.device }}
+                {% if form.device.errors %}
+                    <div class="error-message">{{ form.device.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="data">Data (JSON):</label>
+                {{ form.data }}
+                {% if form.data.errors %}
+                    <div class="error-message">{{ form.data.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">Create</button>
+                <a href="{% url 'device_list' %}"><button type="button" class="btn-cancel">Cancel</button></a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

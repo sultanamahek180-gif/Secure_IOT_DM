@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Device</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #020509;
+            --surface: #0b1120;
+            --cyan: #00e5ff;
+            --violet: #9c42ff;
+            --rose: #ff2d6b;
+            --lime: #aaff00;
+            --text: #e8f0fe;
+            --muted: #4a5568;
+            --glass: rgba(11, 17, 32, 0.78);
+            --border: rgba(0, 229, 255, 0.12);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px 80px;
+            position: relative;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* ── CUSTOM CURSOR ── */
+        #cur-ring {
+            position: fixed; top: 0; left: 0;
+            width: 40px; height: 40px;
+            border: 1.5px solid var(--cyan); border-radius: 50%;
+            pointer-events: none; z-index: 99999;
+            transform: translate(-50%, -50%);
+            transition: width .3s, height .3s, border-color .3s, background .3s;
+            mix-blend-mode: screen;
+        }
+        #cur-dot {
+            position: fixed; top: 0; left: 0;
+            width: 6px; height: 6px;
+            background: var(--cyan); border-radius: 50%;
+            pointer-events: none; z-index: 100000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 12px var(--cyan);
+        }
+        body:has(a:hover) #cur-ring,
+        body:has(button:hover) #cur-ring {
+            width: 64px; height: 64px;
+            background: rgba(0,229,255,.06);
+            border-color: var(--violet);
+        }
+
+        /* Grid */
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,229,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,.035) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 40%, transparent 100%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Orbs */
+        .orb {
+            position: fixed; border-radius: 50%;
+            filter: blur(110px); pointer-events: none; z-index: 0;
+            animation: orbDrift 22s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+            width: 520px; height: 520px;
+            background: radial-gradient(circle, rgba(0,229,255,.18), transparent 70%);
+            top: -160px; right: -100px;
+        }
+        .orb-2 {
+            width: 440px; height: 440px;
+            background: radial-gradient(circle, rgba(156,66,255,.2), transparent 70%);
+            bottom: -100px; left: -100px; animation-delay: -9s;
+        }
+        @keyframes orbDrift {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(36px,36px) scale(1.07); }
+        }
+
+        /* ── PAGE WRAP ── */
+        .page-wrap {
+            position: relative; z-index: 10;
+            width: 100%; max-width: 600px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* ── BREADCRUMB ── */
+        .breadcrumb-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 28px; font-size: .78rem; color: var(--muted);
+            font-family: 'Syne', sans-serif; letter-spacing: .5px;
+            text-transform: uppercase; width: 100%;
+            animation: fadeUp .6s ease both;
+        }
+        .breadcrumb-row a {
+            color: var(--muted); text-decoration: none;
+            transition: color .2s; cursor: none;
+        }
+        .breadcrumb-row a:hover { color: var(--cyan); }
+        .breadcrumb-row .sep { color: rgba(255,255,255,.15); }
+        .breadcrumb-row .current { color: var(--cyan); }
+
+        /* ── CARD ── */
+        .device-card {
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 52px 52px 48px;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 40px 100px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+            position: relative; overflow: hidden;
+            animation: cardIn .85s cubic-bezier(.22,1,.36,1) .1s both;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(36px) scale(.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .device-card::before {
+            content: '';
+            position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent);
+        }
+        .device-card::after {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(0,229,255,.05), transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ── CARD HEADER ── */
+        .card-header-area {
+            display: flex; align-items: flex-start; gap: 20px;
+            margin-bottom: 36px;
+            animation: fadeUp .6s ease .25s both;
+        }
+        .card-icon {
+            width: 56px; height: 56px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            border-radius: 16px; display: grid; place-items: center;
+            font-size: 1.3rem; color: #000;
+            animation: iconGlow 3s ease-in-out infinite;
+        }
+        @keyframes iconGlow {
+            0%,100% { box-shadow: 0 0 24px rgba(0,229,255,.35); }
+            50%      { box-shadow: 0 0 38px rgba(156,66,255,.5); }
+        }
+        .card-meta { display: flex; flex-direction: column; gap: 6px; }
+        .card-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 12px; border-radius: 50px;
+            border: 1px solid rgba(0,229,255,.2); background: rgba(0,229,255,.04);
+            font-size: .67rem; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--cyan); font-family: 'Syne', sans-serif; width: fit-content;
+        }
+        .badge-dot {
+            width: 5px; height: 5px; background: var(--lime);
+            border-radius: 50%; box-shadow: 0 0 6px var(--lime);
+            animation: blink 1.5s ease infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .card-meta h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.65rem; font-weight: 800; letter-spacing: -.6px;
+            background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,.55));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin: 0; line-height: 1.1;
+        }
+        .card-meta p { font-size: .83rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+        /* ── DIVIDER ── */
+        .card-divider {
+            width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,229,255,.1), rgba(156,66,255,.1), transparent);
+            margin-bottom: 32px;
+            animation: fadeUp .5s ease .3s both;
+        }
+
+        /* ── INFO STRIP ── */
+        .info-strip {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: rgba(0,229,255,.04); border: 1px solid rgba(0,229,255,.1);
+            border-radius: 12px; padding: 14px 18px; margin-bottom: 28px;
+            animation: fadeUp .6s ease .32s both;
+        }
+        .info-strip i { color: var(--cyan); font-size: .9rem; flex-shrink: 0; margin-top: 1px; filter: drop-shadow(0 0 5px var(--cyan)); }
+        .info-strip span { font-size: .8rem; color: #3d5166; line-height: 1.55; }
+        .info-strip span strong { color: #5a7a9a; font-weight: 500; }
+
+        /* ── DJANGO form.as_p FIELDS ── */
+        form p {
+            margin-bottom: 22px;
+            animation: fadeUp .6s ease both;
+        }
+        form p:nth-child(1) { animation-delay: .35s; }
+        form p:nth-child(2) { animation-delay: .42s; }
+        form p:nth-child(3) { animation-delay: .49s; }
+        form p:nth-child(4) { animation-delay: .56s; }
+        form p:nth-child(5) { animation-delay: .63s; }
+
+        form label {
+            display: block;
+            font-size: .75rem; font-weight: 600; color: #6b7fa3;
+            margin-bottom: 8px; letter-spacing: .6px;
+            text-transform: uppercase; font-family: 'Syne', sans-serif;
+        }
+
+        form input[type="text"],
+        form input[type="email"],
+        form input[type="number"],
+        form input[type="url"],
+        form textarea,
+        form select {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 12px; color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size: .93rem;
+            outline: none; transition: border-color .3s, box-shadow .3s, background .3s;
+            box-sizing: border-box; appearance: none;
+        }
+        form input:focus, form textarea:focus, form select:focus {
+            border-color: rgba(0,229,255,.4);
+            background: rgba(0,229,255,.03);
+            box-shadow: 0 0 0 3px rgba(0,229,255,.07), 0 0 20px rgba(0,229,255,.05);
+        }
+        form input::placeholder, form textarea::placeholder { color: #2d3f55; }
+        form textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+        form select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5568' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 16px center;
+            padding-right: 42px; cursor: none;
+        }
+        form select option { background: var(--surface); color: var(--text); }
+        form input[type="checkbox"] {
+            width: 18px; height: 18px; accent-color: var(--cyan);
+            margin-right: 8px; cursor: none; border-radius: 4px; vertical-align: middle;
+        }
+        .errorlist, ul.errorlist {
+            list-style: none; padding: 0; margin: 0 0 8px;
+            font-size: .78rem; color: var(--rose);
+        }
+        .errorlist li::before { content: '⚠ '; font-size: .68rem; }
+        form .helptext { display: block; margin-top: 5px; font-size: .72rem; color: #2d3f55; line-height: 1.5; }
+
+        /* ── ACTIONS ── */
+        .form-actions {
+            display: flex; gap: 14px; align-items: center;
+            margin-top: 32px; padding-top: 26px;
+            border-top: 1px solid rgba(255,255,255,.05);
+            animation: fadeUp .6s ease .65s both;
+        }
+
+        /* Save button — wraps the original <button type="submit"> */
+        button[type="submit"] {
+            display: inline-flex; align-items: center; gap: 9px;
+            padding: 13px 36px;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            border: none; border-radius: 12px;
+            color: #000; font-family: 'Syne', sans-serif;
+            font-weight: 700; font-size: .97rem; letter-spacing: .4px;
+            cursor: none; position: relative; overflow: hidden;
+            transition: transform .3s, box-shadow .3s;
+            box-shadow: 0 0 24px rgba(0,229,255,.25);
+            flex: 1; justify-content: center;
+        }
+        button[type="submit"]::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.2), transparent);
+            opacity: 0; transition: opacity .3s;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,229,255,.4);
+        }
+        button[type="submit"]:hover::before { opacity: 1; }
+        button[type="submit"]:active { transform: translateY(0); }
+
+        /* Back link — wraps the original <a> */
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 12px; color: var(--muted);
+            font-family: 'Syne', sans-serif; font-weight: 600;
+            font-size: .9rem; cursor: none; text-decoration: none;
+            transition: all .3s; white-space: nowrap;
+        }
+        .back-link:hover {
+            border-color: rgba(255,255,255,.22);
+            color: #fff; background: rgba(255,255,255,.04);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            #cur-ring, #cur-dot { display: none; }
+            body { cursor: auto; }
+            * { cursor: auto !important; }
+            .device-card { padding: 36px 24px 32px; }
+            .card-header-area { flex-direction: column; gap: 16px; }
+            .form-actions { flex-direction: column; }
+            button[type="submit"], .back-link { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cur-ring"></div>
+<div id="cur-dot"></div>
+
+<!-- Orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="page-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-row">
+        <a href="{% url 'device_list' %}">
+            <i class="fa-solid fa-microchip" style="margin-right:5px;"></i>Devices
+        </a>
+        <span class="sep">/</span>
+        <span class="current">Create New</span>
+    </div>
+
+    <div class="device-card">
+
+        <!-- Header -->
+        <div class="card-header-area">
+            <div class="card-icon"><i class="fa-solid fa-circle-plus"></i></div>
+            <div class="card-meta">
+                <div class="card-badge"><div class="badge-dot"></div>New Device</div>
+                <h2>Create Device</h2>
+                <p>Register a new IoT device and connect it to your fleet.</p>
+            </div>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- Info strip -->
+        <div class="info-strip">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>A <strong>unique device ID</strong> will be assigned automatically. Configure firmware and access policies after creation.</span>
+        </div>
+
+        <!-- ── ORIGINAL CODE — UNTOUCHED ── -->
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit">
+                    <i class="fa-solid fa-microchip"></i> Save
+                </button>
+                <a href="{% url 'device_list' %}" class="back-link">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Device List
+                </a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const ring = document.getElementById('cur-ring');
+    const dot  = document.getElementById('cur-dot');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px';
+        dot.style.top  = my + 'px';
+    });
+
+    (function animCursor() {
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        requestAnimationFrame(animCursor);
+    })();
+</script>
+
+</body>
+</html>

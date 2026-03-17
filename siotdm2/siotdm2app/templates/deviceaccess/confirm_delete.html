@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Device Access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #d32f2f;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .warning-box {
+            background-color: #ffebee;
+            border-left: 4px solid #d32f2f;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        .warning-box p {
+            color: #c62828;
+            margin: 5px 0;
+        }
+        .access-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            border: 1px solid #e0e0e0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #333;
+        }
+        .value {
+            color: #666;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .btn-danger {
+            background-color: #d32f2f;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #b71c1c;
+        }
+        .btn-secondary {
+            background-color: #757575;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #616161;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Delete Device Access</h1>
+        
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong></p>
+            <p>You are about to permanently delete this device access record.</p>
+            <p>This action cannot be undone.</p>
+        </div>
+
+        <div class="access-info">
+            <div class="info-row">
+                <span class="label">User:</span>
+                <span class="value">{{ access.user.username }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Device:</span>
+                <span class="value">{{ access.device.device_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Read Permission:</span>
+                <span class="value">{% if access.can_read %}Yes{% else %}No{% endif %}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Write Permission:</span>
+                <span class="value">{% if access.can_write %}Yes{% else %}No{% endif %}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Granted At:</span>
+                <span class="value">{{ access.granted_at }}</span>
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                <a href="{% url 'deviceaccess_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
