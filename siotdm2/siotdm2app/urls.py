@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path('', views.home, name='home'),
 
@@ -57,5 +58,14 @@ path('device-access/', views.deviceaccess_list, name='deviceaccess_list'),
 
 path('device-access/update/<uuid:access_id>/', views.deviceaccess_update, name='deviceaccess_update'),
 path('device-access/delete/<uuid:access_id>/', views.deviceaccess_delete, name='deviceaccess_delete'),
-path('alerts/<uuid:device_id>/', views.alert_list, name='alert_list'),
+path('devices/data/api/', views.devicedata_api, name='devicedata_api'),
+path('verify-otp/', views.verify_otp, name='verify_otp'),
+path('resend-otp/', views.resend_otp, name='resend_otp'),
+
+path(
+    'devices/<uuid:device_id>/dashboard/',
+    views.devicedata_dashboard,
+    name='devicedata_dashboard'
+),
+
 ]

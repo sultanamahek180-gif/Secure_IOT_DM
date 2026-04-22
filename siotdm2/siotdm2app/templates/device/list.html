@@ -5,480 +5,609 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device List</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --bg: #020509;
-            --surface: #0b1120;
-            --cyan: #00e5ff;
-            --violet: #9c42ff;
-            --rose: #ff2d6b;
-            --lime: #aaff00;
-            --amber: #ffaa00;
-            --text: #e8f0fe;
-            --muted: #4a5568;
-            --glass: rgba(11, 17, 32, 0.78);
-            --border: rgba(0, 229, 255, 0.12);
+            --void: #010508;
+            --deep: #040d12;
+            --bio-green: #00ff88;
+            --bio-teal: #00e5c8;
+            --bio-amber: #ffaa00;
+            --bio-red: #ff3060;
+            --bio-blue: #0099ff;
+            --border-bio: rgba(0, 255, 136, 0.15);
+            --text-primary: #caf0e0;
+            --text-muted: rgba(180, 220, 200, 0.35);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
-            background-color: var(--bg);
-            padding: 20px;
-            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--void);
+            color: var(--text-primary);
             min-height: 100vh;
-            position: relative;
             overflow-x: hidden;
             cursor: none;
+            padding: 0 0 80px;
         }
 
-        /* ── CUSTOM CURSOR ── */
-        #cur-ring {
+        /* ── CURSOR ── */
+        #cursor {
             position: fixed; top: 0; left: 0;
-            width: 40px; height: 40px;
-            border: 1.5px solid var(--cyan); border-radius: 50%;
+            width: 20px; height: 20px;
             pointer-events: none; z-index: 99999;
             transform: translate(-50%, -50%);
-            transition: width .3s, height .3s, border-color .3s, background .3s;
-            mix-blend-mode: screen;
         }
-        #cur-dot {
+        #cursor svg { width: 100%; height: 100%; animation: cursorSpin 4s linear infinite; }
+        @keyframes cursorSpin { to { transform: rotate(360deg); } }
+
+        #cursor-trail {
             position: fixed; top: 0; left: 0;
-            width: 6px; height: 6px;
-            background: var(--cyan); border-radius: 50%;
-            pointer-events: none; z-index: 100000;
+            pointer-events: none; z-index: 99998;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 12px var(--cyan);
+            width: 60px; height: 60px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 50%;
+            transition: left 0.15s ease, top 0.15s ease, width 0.3s, height 0.3s, border-color 0.3s;
         }
-        body:has(a:hover) #cur-ring,
-        body:has(button:hover) #cur-ring {
-            width: 64px; height: 64px;
-            background: rgba(0,229,255,.06);
-            border-color: var(--violet);
+        body:has(a:hover) #cursor-trail,
+        body:has(button:hover) #cursor-trail {
+            width: 90px; height: 90px;
+            border-color: var(--bio-teal);
         }
 
-        /* Grid */
-        body::after {
-            content: '';
-            position: fixed; inset: 0;
+        /* ── SCAN LINE ── */
+        .scan-line {
+            position: fixed; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--bio-green), transparent);
+            z-index: 9999; pointer-events: none;
+            animation: scanMove 8s linear infinite; opacity: 0.22;
+        }
+        @keyframes scanMove { 0% { top: -2px; } 100% { top: 100vh; } }
+
+        /* ── BACKGROUND ── */
+        .bg-grid {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
             background-image:
-                linear-gradient(rgba(0,229,255,.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,229,255,.035) 1px, transparent 1px);
+                linear-gradient(rgba(0, 255, 136, .025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, .025) 1px, transparent 1px);
             background-size: 60px 60px;
-            mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 40%, transparent 100%);
-            pointer-events: none; z-index: 0;
         }
-
-        /* Orbs */
-        .orb {
+        .page-orb {
             position: fixed; border-radius: 50%;
-            filter: blur(110px); pointer-events: none; z-index: 0;
-            animation: orbDrift 22s ease-in-out infinite alternate;
+            pointer-events: none; z-index: 0; filter: blur(80px);
+            animation: orbDrift 18s ease-in-out infinite alternate;
         }
-        .orb-1 {
-            width: 560px; height: 560px;
-            background: radial-gradient(circle, rgba(156,66,255,.2), transparent 70%);
-            top: -180px; left: -120px;
-        }
-        .orb-2 {
+        .page-orb-1 {
             width: 460px; height: 460px;
-            background: radial-gradient(circle, rgba(0,229,255,.14), transparent 70%);
-            bottom: -100px; right: -100px; animation-delay: -9s;
+            background: radial-gradient(circle, rgba(0, 255, 136, .07), transparent 70%);
+            top: -150px; left: -140px;
+        }
+        .page-orb-2 {
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(0, 229, 200, .06), transparent 70%);
+            bottom: -90px; right: -80px;
+            animation-delay: -9s; animation-direction: alternate-reverse;
         }
         @keyframes orbDrift {
-            0%   { transform: translate(0,0) scale(1); }
-            100% { transform: translate(36px,36px) scale(1.07); }
+            0%   { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(28px, 28px) scale(1.06); }
         }
 
-        /* ── LOGIN / LOGOUT BAR ── */
-        .topbar {
-            width: 100%; padding: 10px 20px;
-            text-align: right; margin-bottom: 20px;
-            display: flex; align-items: center; justify-content: flex-end;
-            gap: 12px; position: relative; z-index: 10;
-            animation: fadeUp .5s ease both;
+        /* ── NAV BAR ── */
+        .top-bar {
+            position: relative; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 40px;
+            background: rgba(1, 5, 8, .85);
+            border-bottom: 1px solid var(--border-bio);
+            backdrop-filter: blur(20px);
+            animation: slideDown .8s ease both;
         }
-        .topbar span {
-            font-size: .82rem; color: var(--muted);
-            font-family: 'Syne', sans-serif; letter-spacing: .3px;
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to   { transform: none; opacity: 1; }
         }
-        .topbar span strong { color: var(--cyan); }
-        .topbar a {
-            padding: 6px 12px; text-decoration: none;
-            border-radius: 8px; font-size: .82rem;
-            font-family: 'Syne', sans-serif; font-weight: 600;
-            cursor: none; transition: transform .2s, opacity .2s;
-            display: inline-flex; align-items: center; gap: 6px;
+        .top-bar-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: .85rem; font-weight: 700;
+            letter-spacing: 3px; color: #fff;
+            display: flex; align-items: center; gap: 10px;
         }
-        .topbar a.logout-btn {
-            background: rgba(255,45,107,.12); color: var(--rose);
-            border: 1px solid rgba(255,45,107,.2);
-        }
-        .topbar a.logout-btn:hover { background: rgba(255,45,107,.2); transform: translateY(-1px); }
-        .topbar a.login-btn {
-            background: rgba(0,229,255,.08); color: var(--cyan);
-            border: 1px solid rgba(0,229,255,.2);
-        }
-        .topbar a.login-btn:hover { background: rgba(0,229,255,.14); transform: translateY(-1px); }
+        .top-bar-logo span { color: var(--bio-green); }
 
-        /* ── CONTAINER ── */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background-color: var(--glass);
-            padding: 40px 44px;
-            border-radius: 28px;
-            box-shadow: 0 40px 100px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
-            border: 1px solid var(--border);
+        .top-bar-right {
+            display: flex; align-items: center; gap: 14px;
+            font-family: 'Space Mono', monospace; font-size: .65rem;
+        }
+        .top-bar-user {
+            color: var(--text-muted); letter-spacing: 1px;
+        }
+        .top-bar-user strong { color: var(--bio-teal); }
+
+        .btn-logout, .btn-login {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 20px;
+            font-family: 'Space Mono', monospace; font-size: .62rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            text-decoration: none; cursor: none;
+            clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            transition: all .3s;
+        }
+        .btn-logout {
+            background: rgba(255, 48, 96, .08);
+            border: 1px solid rgba(255, 48, 96, .25);
+            color: var(--bio-red);
+        }
+        .btn-logout:hover {
+            background: rgba(255, 48, 96, .15);
+            box-shadow: 0 0 20px rgba(255, 48, 96, .2);
+        }
+        .btn-login {
+            background: rgba(0, 255, 136, .06);
+            border: 1px solid var(--border-bio);
+            color: var(--bio-green);
+        }
+        .btn-login:hover {
+            background: rgba(0, 255, 136, .12);
+            box-shadow: 0 0 20px rgba(0, 255, 136, .15);
+        }
+
+        /* ── PAGE SHELL ── */
+        .page-shell {
             position: relative; z-index: 10;
-            backdrop-filter: blur(24px);
-            animation: cardIn .85s cubic-bezier(.22,1,.36,1) .1s both;
-            overflow: hidden;
-        }
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(32px) scale(.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .container::before {
-            content: '';
-            position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent);
+            max-width: 1200px; margin: 0 auto;
+            padding: 48px 40px;
         }
 
         /* ── PAGE HEADER ── */
         .page-header {
-            display: flex; align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            animation: fadeUp .6s ease .15s both;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 36px; flex-wrap: wrap; gap: 20px;
+            animation: fadeUp .6s ease .1s both;
         }
-        .title-wrap { display: flex; align-items: center; gap: 16px; }
-        .title-icon {
-            width: 48px; height: 48px;
-            background: linear-gradient(135deg, var(--cyan), var(--violet));
-            border-radius: 14px; display: grid; place-items: center;
-            font-size: 1.1rem; color: #000; flex-shrink: 0;
-            box-shadow: 0 0 22px rgba(0,229,255,.3);
-        }
-        .title-text { display: flex; flex-direction: column; gap: 3px; }
+        .page-header-left { display: flex; flex-direction: column; gap: 8px; }
 
-        h1 {
-            margin-bottom: 0; color: var(--text);
-            font-family: 'Syne', sans-serif;
-            font-size: 1.65rem; font-weight: 800; letter-spacing: -.6px;
-            background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,.5));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .page-eyebrow {
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: .6rem; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--bio-teal);
         }
-        .device-count {
-            font-size: .75rem; color: var(--muted);
-            font-family: 'Syne', sans-serif; letter-spacing: .3px;
+        .page-eyebrow::before {
+            content: ''; display: block; width: 24px; height: 1px;
+            background: var(--bio-teal);
         }
 
-        /* ── BTN-CONTAINER ── */
-        .btn-container {
-            margin-bottom: 20px;
-            display: flex; gap: 10px; flex-wrap: wrap;
-            animation: fadeUp .6s ease .22s both;
-            padding-top: 24px;
-            border-top: 1px solid rgba(255,255,255,.05);
-            margin-top: 20px;
+        .page-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem; font-weight: 900;
+            letter-spacing: -1px; color: #fff;
+        }
+        .page-title span { color: var(--bio-green); }
+
+        .page-header-right {
+            display: flex; align-items: center; gap: 12px;
         }
 
+        /* ── BUTTONS ── */
         .btn {
-            padding: 10px 15px; text-decoration: none;
-            border: none; border-radius: 10px;
-            cursor: none; font-size: .88rem;
-            font-family: 'Syne', sans-serif; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 7px;
-            transition: transform .25s, box-shadow .25s;
-            position: relative; overflow: hidden; letter-spacing: .3px;
+            display: inline-flex; align-items: center; gap: 9px;
+            padding: 11px 24px;
+            font-family: 'Orbitron', monospace; font-weight: 700;
+            font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase;
+            text-decoration: none; border: none; cursor: none;
+            position: relative; overflow: hidden;
+            transition: transform .3s, box-shadow .3s;
+            clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
         }
         .btn::before {
             content: ''; position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,.18), transparent);
+            background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
             opacity: 0; transition: opacity .3s;
         }
         .btn:hover::before { opacity: 1; }
         .btn:hover { transform: translateY(-2px); }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--lime), var(--cyan));
-            color: #000;
-            box-shadow: 0 0 18px rgba(170,255,0,.2);
+            background: var(--bio-green); color: #000;
+            box-shadow: 0 0 24px rgba(0, 255, 136, .2);
         }
-        .btn-primary:hover { box-shadow: 0 8px 28px rgba(170,255,0,.35); color: #000; }
+        .btn-primary:hover { box-shadow: 0 8px 32px rgba(0, 255, 136, .35); }
 
-        /* Back to orgs — ghost style */
-        .btn-back {
-            background: transparent !important;
-            border: 1px solid rgba(255,255,255,.12) !important;
-            color: var(--muted) !important;
-            box-shadow: none !important;
-            margin-left: 0 !important;
+        .btn-secondary {
+            background: transparent; color: var(--text-muted);
+            border: 1px solid var(--border-bio);
         }
-        .btn-back:hover { border-color: rgba(255,255,255,.25) !important; color: #fff !important; background: rgba(255,255,255,.04) !important; }
+        .btn-secondary:hover {
+            color: var(--bio-green);
+            border-color: rgba(0, 255, 136, .3);
+            background: rgba(0, 255, 136, .04);
+        }
 
-        /* ── TABLE WRAP ── */
-        .table-wrap {
-            border-radius: 16px; overflow: hidden;
-            border: 1px solid rgba(255,255,255,.06);
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 2px; margin-bottom: 32px;
+            animation: fadeUp .6s ease .2s both;
+        }
+        .stat-cell {
+            background: rgba(4, 13, 18, .8);
+            border: 1px solid var(--border-bio);
+            padding: 20px 24px;
+            clip-path: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            position: relative; overflow: hidden;
+        }
+        .stat-cell::after {
+            content: ''; position: absolute;
+            bottom: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--bio-green), transparent);
+            opacity: 0; transition: opacity .3s;
+        }
+        .stat-cell:hover::after { opacity: 1; }
+        .stat-num {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.6rem; font-weight: 900; color: #fff;
+            line-height: 1; margin-bottom: 6px;
+        }
+        .stat-num em { color: var(--bio-green); font-style: normal; }
+        .stat-label {
+            font-family: 'Space Mono', monospace;
+            font-size: .58rem; letter-spacing: 2px;
+            color: var(--text-muted); text-transform: uppercase;
+        }
+
+        /* ── TABLE CARD ── */
+        .table-card {
+            background: rgba(4, 13, 18, .92);
+            border: 1px solid var(--border-bio);
+            clip-path: polygon(16px 0%, 100% 0%, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+            position: relative; overflow: hidden;
             animation: fadeUp .6s ease .3s both;
         }
+        .table-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--bio-green), var(--bio-teal), transparent);
+        }
+        .corner-tl {
+            position: absolute; top: 6px; left: 6px;
+            width: 12px; height: 12px;
+            border-top: 1px solid rgba(0, 255, 136, .3);
+            border-left: 1px solid rgba(0, 255, 136, .3);
+            z-index: 1;
+        }
+        .corner-br {
+            position: absolute; bottom: 6px; right: 6px;
+            width: 12px; height: 12px;
+            border-bottom: 1px solid rgba(0, 255, 136, .3);
+            border-right: 1px solid rgba(0, 255, 136, .3);
+        }
 
+        /* ── TABLE ── */
         table {
-            width: 100%; border-collapse: collapse; margin-top: 0;
+            width: 100%;
+            border-collapse: collapse;
         }
-
+        thead tr {
+            background: rgba(0, 255, 136, .03);
+            border-bottom: 1px solid var(--border-bio);
+        }
         th {
-            background: linear-gradient(90deg, rgba(0,229,255,.07), rgba(156,66,255,.07));
-            color: #6b7fa3; padding: 13px 16px; text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,.06);
-            font-weight: 700; font-family: 'Syne', sans-serif;
-            font-size: .7rem; letter-spacing: 1px; text-transform: uppercase;
+            padding: 16px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: .58rem; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--text-muted); font-weight: 400;
+            text-align: left; white-space: nowrap;
         }
-
         td {
-            padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,.04);
-            font-size: .87rem; color: #8fa8c4; vertical-align: middle;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0, 255, 136, .05);
+            font-size: .92rem; letter-spacing: .2px;
+            color: var(--text-primary);
         }
-        td:first-child { color: var(--text); font-weight: 500; }
+        tbody tr {
+            transition: background .2s;
+            position: relative;
+        }
+        tbody tr:hover { background: rgba(0, 255, 136, .02); }
         tbody tr:last-child td { border-bottom: none; }
 
-        tr:hover { background-color: rgba(0,229,255,.035) !important; }
-
-        /* ── BADGES — keeps original class names ── */
+        /* ── BADGES ── */
         .badge {
-            padding: 5px 12px; border-radius: 50px;
-            font-size: .7rem; font-weight: 700;
-            font-family: 'Syne', sans-serif; letter-spacing: .8px;
-            text-transform: uppercase; display: inline-flex;
-            align-items: center; gap: 5px;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: .58rem; letter-spacing: 1.5px; text-transform: uppercase;
+            clip-path: polygon(5px 0%, 100% 0%, calc(100% - 5px) 100%, 0 100%);
+            font-weight: 400;
         }
         .badge::before {
-            content: ''; width: 5px; height: 5px;
+            content: ''; width: 4px; height: 4px;
             border-radius: 50%; flex-shrink: 0;
         }
-
         .badge-active {
-            background: rgba(170,255,0,.1);
-            color: var(--lime);
-            border: 1px solid rgba(170,255,0,.2);
+            background: rgba(0, 255, 136, .08);
+            border: 1px solid rgba(0, 255, 136, .25);
+            color: var(--bio-green);
         }
-        .badge-active::before { background: var(--lime); box-shadow: 0 0 5px var(--lime); animation: blink 1.5s ease infinite; }
+        .badge-active::before { background: var(--bio-green); box-shadow: 0 0 5px var(--bio-green); }
 
         .badge-inactive {
-            background: rgba(74,85,104,.15);
-            color: var(--muted);
-            border: 1px solid rgba(74,85,104,.3);
+            background: rgba(180, 220, 200, .04);
+            border: 1px solid rgba(180, 220, 200, .12);
+            color: var(--text-muted);
         }
-        .badge-inactive::before { background: var(--muted); }
+        .badge-inactive::before { background: var(--text-muted); }
 
         .badge-blocked {
-            background: rgba(255,45,107,.1);
-            color: var(--rose);
-            border: 1px solid rgba(255,45,107,.2);
+            background: rgba(255, 48, 96, .07);
+            border: 1px solid rgba(255, 48, 96, .25);
+            color: var(--bio-red);
         }
-        .badge-blocked::before { background: var(--rose); box-shadow: 0 0 5px var(--rose); animation: blink 1.5s ease infinite; }
+        .badge-blocked::before { background: var(--bio-red); box-shadow: 0 0 5px var(--bio-red); animation: blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-        /* ── ACTION BUTTONS — keeps .action-buttons .btn-sm ── */
-        .action-buttons { display: flex; gap: 7px; flex-wrap: wrap; }
+        /* ── ACTION BUTTONS ── */
+        .action-buttons { display: flex; gap: 8px; align-items: center; }
 
         .btn-sm {
-            padding: 6px 12px; font-size: .73rem;
-            text-decoration: none; border: none; border-radius: 7px;
-            cursor: none; font-family: 'Syne', sans-serif; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 5px;
-            transition: transform .2s, box-shadow .2s;
-            white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px;
+            font-family: 'Space Mono', monospace;
+            font-size: .58rem; letter-spacing: 1px; text-transform: uppercase;
+            text-decoration: none; border: none; cursor: none;
+            clip-path: polygon(5px 0%, 100% 0%, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+            transition: all .25s; white-space: nowrap;
         }
-        .btn-sm:hover { transform: translateY(-1px); }
-
-        /* override btn-primary for small table btns */
         .btn-sm.btn-primary {
-            background: rgba(0,229,255,.1) !important;
-            color: var(--cyan) !important;
-            border: 1px solid rgba(0,229,255,.2) !important;
-            box-shadow: none !important;
+            background: rgba(0, 255, 136, .08);
+            border: 1px solid rgba(0, 255, 136, .2);
+            color: var(--bio-green);
+            clip-path: polygon(5px 0%, 100% 0%, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+            box-shadow: none;
         }
         .btn-sm.btn-primary:hover {
-            background: rgba(0,229,255,.18) !important;
-            box-shadow: 0 3px 12px rgba(0,229,255,.18) !important;
+            background: rgba(0, 255, 136, .15);
+            box-shadow: 0 0 14px rgba(0, 255, 136, .15);
+            transform: translateY(-1px);
+        }
+        .btn-sm.btn-warning {
+            background: rgba(255, 170, 0, .07);
+            border: 1px solid rgba(255, 170, 0, .22);
+            color: var(--bio-amber);
+        }
+        .btn-sm.btn-warning:hover {
+            background: rgba(255, 170, 0, .14);
+            box-shadow: 0 0 14px rgba(255, 170, 0, .15);
+            transform: translateY(-1px);
+        }
+        .btn-sm.btn-danger {
+            background: rgba(255, 48, 96, .07);
+            border: 1px solid rgba(255, 48, 96, .22);
+            color: var(--bio-red);
+        }
+        .btn-sm.btn-danger:hover {
+            background: rgba(255, 48, 96, .14);
+            box-shadow: 0 0 14px rgba(255, 48, 96, .15);
+            transform: translateY(-1px);
         }
 
-        .btn-warning {
-            background: rgba(255,170,0,.1);
-            color: var(--amber);
-            border: 1px solid rgba(255,170,0,.2);
-        }
-        .btn-warning:hover { background: rgba(255,170,0,.18); box-shadow: 0 3px 12px rgba(255,170,0,.2); color: var(--amber); }
-
-        .btn-danger {
-            background: rgba(255,45,107,.1);
-            color: var(--rose);
-            border: 1px solid rgba(255,45,107,.2);
-        }
-        .btn-danger:hover { background: rgba(255,45,107,.18); box-shadow: 0 3px 12px rgba(255,45,107,.2); color: var(--rose); }
-
-        /* ── EMPTY ── */
+        /* ── EMPTY STATE ── */
         .empty-message {
-            text-align: center; padding: 60px 20px; color: var(--muted);
-            animation: fadeUp .6s ease .3s both;
+            padding: 80px 40px;
+            text-align: center;
         }
         .empty-icon {
-            width: 64px; height: 64px; margin: 0 auto 18px;
-            background: rgba(0,229,255,.06); border: 1px solid rgba(0,229,255,.1);
-            border-radius: 50%; display: grid; place-items: center;
-            font-size: 1.5rem; color: var(--muted);
+            font-size: 2.5rem; color: var(--text-muted);
+            margin-bottom: 20px; opacity: .4;
         }
-        .empty-message p { font-size: .9rem; line-height: 1.6; }
-        .empty-message a { color: var(--cyan); text-decoration: none; font-weight: 600; cursor: none; }
-        .empty-message a:hover { opacity: .75; }
+        .empty-message p {
+            font-family: 'Space Mono', monospace;
+            font-size: .72rem; letter-spacing: 1px;
+            color: var(--text-muted); margin-bottom: 20px;
+        }
+        .empty-message a {
+            color: var(--bio-green);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 255, 136, .3);
+            transition: border-color .2s;
+        }
+        .empty-message a:hover { border-color: var(--bio-green); }
+
+        /* ── DEVICE NAME CELL ── */
+        .device-name {
+            font-family: 'Orbitron', monospace;
+            font-size: .78rem; letter-spacing: .5px;
+            color: #fff;
+        }
+        .device-id {
+            font-family: 'Space Mono', monospace;
+            font-size: .6rem; color: var(--text-muted);
+            margin-top: 3px; letter-spacing: .5px;
+        }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: none; }
         }
 
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 768px) {
-            #cur-ring, #cur-dot { display: none; }
+            #cursor, #cursor-trail { display: none; }
             body { cursor: auto; }
             * { cursor: auto !important; }
-            .container { padding: 28px 18px; }
-            .page-header { flex-direction: column; align-items: flex-start; gap: 14px; }
-            th, td { padding: 10px 10px; font-size: .75rem; }
-            .action-buttons { flex-direction: column; }
+            .page-shell { padding: 32px 20px; }
+            .top-bar { padding: 14px 20px; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            table { display: block; overflow-x: auto; }
+            .action-buttons { flex-direction: column; gap: 5px; }
+        }
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
 
-<!-- Custom cursor -->
-<div id="cur-ring"></div>
-<div id="cur-dot"></div>
+    <!-- Cursor -->
+    <div id="cursor">
+        <svg viewBox="0 0 20 20" fill="none">
+            <polygon points="10,1 13,7 19,7 14.5,11 16.5,18 10,14 3.5,18 5.5,11 1,7 7,7"
+                stroke="#00ff88" stroke-width="1.2" />
+        </svg>
+    </div>
+    <div id="cursor-trail"></div>
 
-<!-- Orbs -->
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
+    <div class="scan-line"></div>
+    <div class="bg-grid"></div>
+    <div class="page-orb page-orb-1"></div>
+    <div class="page-orb page-orb-2"></div>
 
-<!-- ── LOGIN / LOGOUT BAR — original code untouched ── -->
-<div style="width:100%; padding:10px 20px; text-align:right; margin-bottom:20px;" class="topbar">
-    {% if user.is_authenticated %}
-        <span>Welcome <strong>{{ user.username }}</strong></span>
-        <a href="{% url 'logout' %}" class="logout-btn" style="background:unset; color:var(--rose); padding:6px 12px; text-decoration:none; border-radius:4px;">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </a>
-    {% else %}
-        <a href="{% url 'login' %}" class="login-btn" style="background:unset; color:var(--cyan); padding:6px 12px; text-decoration:none; border-radius:4px;">
-            <i class="fa-solid fa-right-to-bracket"></i> Login
-        </a>
-    {% endif %}
-</div>
-
-<!-- ── CONTAINER — original structure untouched ── -->
-<div class="container">
-
-    <!-- Page header -->
-    <div class="page-header">
-        <div class="title-wrap">
-            <div class="title-icon"><i class="fa-solid fa-microchip"></i></div>
-            <div class="title-text">
-                <h1>IoT Devices</h1>
-                {% if devices %}<div class="device-count">{{ devices|length }} device{{ devices|length|pluralize }} registered</div>{% endif %}
-            </div>
+    <!-- ── LOGIN / LOGOUT BAR — original logic untouched ── -->
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <polygon points="10,1 19,6 19,14 10,19 1,14 1,6" stroke="#00ff88" stroke-width="1" opacity=".7"/>
+            </svg>
+            SECURE<span>IOT</span>
+        </div>
+        <div class="top-bar-right">
+            {% if user.is_authenticated %}
+                <span class="top-bar-user">NODE: <strong>{{ user.username }}</strong></span>
+                <a href="{% url 'logout' %}" class="btn-logout">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-login">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login
+                </a>
+            {% endif %}
         </div>
     </div>
 
-    <!-- ── ORIGINAL BTN-CONTAINER — untouched ── -->
-    <div class="btn-container">
-        <a href="{% url 'device_create' %}" class="btn btn-primary">
-            <i class="fa-solid fa-plus"></i> Add Device
-        </a>
-        <a href="{% url 'organization_list' %}" class="btn btn-primary btn-back" style="background-color:unset; margin-left:0;">
-            <i class="fa-solid fa-arrow-left"></i> Back to Organizations
-        </a>
+    <div class="page-shell">
+
+        <!-- Page header -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <div class="page-eyebrow">Fleet Management</div>
+                <h1 class="page-title">IoT <span>Devices</span></h1>
+            </div>
+            <div class="page-header-right">
+                <!-- btn-container — original links untouched -->
+                <a href="{% url 'device_create' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Add Device
+                </a>
+                <a href="{% url 'organization_list' %}" class="btn btn-secondary">
+                    <i class="fa-solid fa-sitemap"></i> Organizations
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+            <div class="stat-cell">
+                <div class="stat-num">{{ devices|length }}<em> nodes</em></div>
+                <div class="stat-label">Total Devices</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num" style="color:var(--bio-green);">
+                    {{ devices|length }}<em style="color:var(--bio-green);"> active</em>
+                </div>
+                <div class="stat-label">Online</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num" style="color:var(--bio-amber);">—</div>
+                <div class="stat-label">Inspecting</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num" style="color:var(--bio-red);">—</div>
+                <div class="stat-label">Blocked</div>
+            </div>
+        </div>
+
+        <!-- Table card -->
+        <div class="table-card">
+            <div class="corner-tl"></div>
+            <div class="corner-br"></div>
+
+            {% if devices %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Device Name</th>
+                        <th>Device Type</th>
+                        <th>Status</th>
+                        <th>Owner</th>
+                        <th>Organization</th>
+                        <th>Registered At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td>
+                            <div class="device-name">{{ device.device_name }}</div>
+                        </td>
+                        <td>{{ device.device_type }}</td>
+                        <td>
+                            <span class="badge badge-{{ device.status }}">
+                                {{ device.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ device.owner.username }}</td>
+                        <td>{{ device.organization.org_name }}</td>
+                        <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--text-muted);">
+                            {{ device.registered_at|date:"M d, Y H:i" }}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'devicedata_list' device.device_id %}" class="btn-sm btn-primary">
+                                    <i class="fa-solid fa-chart-line"></i> View Data
+                                </a>
+                                <a href="{% url 'device_update' device.device_id %}" class="btn-sm btn-warning">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <a href="{% url 'device_delete' device.device_id %}" class="btn-sm btn-danger">
+                                    <i class="fa-solid fa-trash-can"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-message">
+                <div class="empty-icon"><i class="fa-solid fa-microchip"></i></div>
+                <p>No devices found. <a href="{% url 'device_create' %}">Register one now</a></p>
+                <a href="{% url 'device_create' %}" class="btn btn-primary" style="margin-top:8px;">
+                    <i class="fa-solid fa-plus"></i> Add Device
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
     </div>
 
-    <!-- ── ORIGINAL TABLE — completely untouched ── -->
-    {% if devices %}
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Device Name</th>
-                    <th>Device Type</th>
-                    <th>Status</th>
-                    <th>Owner</th>
-                    <th>Organization</th>
-                    <th>Registered At</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for device in devices %}
-                <tr>
-                    <td>{{ device.device_name }}</td>
-                    <td>{{ device.device_type }}</td>
-                    <td>
-                        <span class="badge badge-{{ device.status }}">
-                            {{ device.get_status_display }}
-                        </span>
-                    </td>
-                    <td>{{ device.owner.username }}</td>
-                    <td>{{ device.organization.org_name }}</td>
-                    <td>{{ device.registered_at|date:"M d, Y H:i" }}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <a href="{% url 'devicedata_list' device.device_id %}" class="btn-sm btn-primary">
-                                <i class="fa-solid fa-chart-line"></i> View Data
-                            </a>
-                            <a href="{% url 'device_update' device.device_id %}" class="btn-sm btn-warning">
-                                <i class="fa-solid fa-pen"></i> Edit
-                            </a>
-                            <a href="{% url 'device_delete' device.device_id %}" class="btn-sm btn-danger">
-                                <i class="fa-solid fa-trash"></i> Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="empty-message">
-        <div class="empty-icon"><i class="fa-solid fa-microchip"></i></div>
-        <p>No devices found. <a href="{% url 'device_create' %}">Create one now</a></p>
-    </div>
-    {% endif %}
-
-</div>
-
-<script>
-    const ring = document.getElementById('cur-ring');
-    const dot  = document.getElementById('cur-dot');
-    let mx = 0, my = 0, rx = 0, ry = 0;
-
-    document.addEventListener('mousemove', e => {
-        mx = e.clientX; my = e.clientY;
-        dot.style.left = mx + 'px';
-        dot.style.top  = my + 'px';
-    });
-
-    (function animCursor() {
-        rx += (mx - rx) * 0.12;
-        ry += (my - ry) * 0.12;
-        ring.style.left = rx + 'px';
-        ring.style.top  = ry + 'px';
-        requestAnimationFrame(animCursor);
-    })();
-</script>
+    <script>
+        const cursor = document.getElementById('cursor');
+        const trail  = document.getElementById('cursor-trail');
+        document.addEventListener('mousemove', e => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top  = e.clientY + 'px';
+            trail.style.left  = e.clientX + 'px';
+            trail.style.top   = e.clientY + 'px';
+        });
+    </script>
 
 </body>
 </html>

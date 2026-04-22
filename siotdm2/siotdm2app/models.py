@@ -19,6 +19,7 @@ class Organization(models.Model):
 # 2️⃣ Custom User Model (Secure)
 # ==============================
 class User(AbstractUser):
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('manager', 'Manager'),
@@ -69,7 +70,7 @@ class Device(models.Model):
 
 
 # ==============================
-# 4️⃣ Device Data Logs
+# 4️⃣ Device Data Logsand Analytics
 # ==============================
 class DeviceData(models.Model):
     data_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -126,3 +127,27 @@ class DeviceAccess(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.device.device_name}"  
+    
+
+    # models.py ka jo code pehle se hai woh upar rahega
+# ...existing models (Organization, Device, DeviceData, Alert, DeviceAccess)...
+
+# ✅ Bilkul neeche add karo
+from django.utils import timezone
+
+class OTPVerification(models.Model):
+    phone_number = models.CharField(max_length=15)
+    otp_code     = models.CharField(max_length=6)
+    is_verified  = models.BooleanField(default=False)
+    is_expired   = models.BooleanField(default=False)
+    expires_at   = models.DateTimeField()
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self, entered_otp):
+        if self.is_expired or timezone.now() > self.expires_at:
+            return False, "OTP expire ho gaya, dobara try karein"
+        if self.otp_code != entered_otp:
+            return False, "Galat OTP"
+        self.is_verified = True
+        self.save()
+        return True, "Success"

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verify</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .lock-icon { font-size: 40px; margin-bottom: 16px; }
+
+        h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 8px; }
+
+        .subtitle { font-size: 14px; color: #888; margin-bottom: 28px; }
+        .subtitle b { color: #1a1a2e; }
+
+        .otp-boxes {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .otp-box {
+            width: 48px; height: 56px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 22px; font-weight: bold;
+            color: #1a1a2e;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .otp-box:focus { border-color: #4f7ef8; }
+        .otp-box.filled { border-color: #4f7ef8; color: #4f7ef8; }
+
+        .btn-verify {
+            width: 100%; padding: 14px;
+            background: #4f7ef8; color: white;
+            border: none; border-radius: 8px;
+            font-size: 15px; font-weight: bold;
+            cursor: pointer; margin-bottom: 12px;
+            transition: background 0.2s;
+        }
+
+        .btn-verify:hover { background: #3a6ae8; }
+
+        .btn-resend {
+            display: block; width: 100%; padding: 13px;
+            background: white; color: #888;
+            border: 1.5px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-weight: bold;
+            cursor: pointer; text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-resend:hover { border-color: #4f7ef8; color: #4f7ef8; }
+
+        .messages { margin-bottom: 16px; }
+
+        .msg {
+            padding: 10px 14px; border-radius: 8px;
+            font-size: 13px; margin-bottom: 8px;
+        }
+
+        .msg.error { background: #fff0f0; color: #e74c3c; border: 1px solid #fcc; }
+        .msg.success { background: #f0fff4; color: #27ae60; border: 1px solid #cfc; }
+
+        .timer { font-size: 12px; color: #aaa; margin-top: 16px; }
+        .timer span { color: #4f7ef8; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <div class="lock-icon">🔐</div>
+    <h2>Verify OTP</h2>
+    <p class="subtitle">A 6-digit code has been sent to: <b>{{ phone }}</b></p>
+
+    {% if messages %}
+    <div class="messages">
+        {% for m in messages %}
+        <div class="msg {% if 'Galat' in m.message or 'expire' in m.message or 'nahi' in m.message %}error{% else %}success{% endif %}">
+            {{ m }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" id="otpForm">
+        {% csrf_token %}
+        <input type="hidden" name="otp" id="realOtp">
+
+        <div class="otp-boxes">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+            <input class="otp-box" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        </div>
+
+        <button type="submit" class="btn-verify">✅ Verify &amp; Login</button>
+    </form>
+
+    <a href="{% url 'resend_otp' %}" class="btn-resend">🔄 Resend OTP</a>
+
+    <div class="timer">OTP expires in: <span id="countdown">10:00</span></div>
+
+</div>
+
+<script>
+    const boxes = document.querySelectorAll('.otp-box');
+    const realOtp = document.getElementById('realOtp');
+    const form = document.getElementById('otpForm');
+
+    function updateHidden() {
+        realOtp.value = Array.from(boxes).map(b => b.value).join('');
+    }
+
+    boxes.forEach((box, i) => {
+        box.addEventListener('input', () => {
+            box.value = box.value.replace(/[^0-9]/g, '');
+            if (box.value) {
+                box.classList.add('filled');
+                if (i < boxes.length - 1) boxes[i + 1].focus();
+            } else {
+                box.classList.remove('filled');
+            }
+            updateHidden();
+            if (Array.from(boxes).every(b => b.value)) {
+                setTimeout(() => form.submit(), 300);
+            }
+        });
+
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !box.value && i > 0) {
+                boxes[i - 1].focus();
+                boxes[i - 1].value = '';
+                boxes[i - 1].classList.remove('filled');
+                updateHidden();
+            }
+        });
+
+        box.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+            pasted.split('').forEach((char, j) => {
+                if (boxes[j]) { boxes[j].value = char; boxes[j].classList.add('filled'); }
+            });
+            boxes[Math.min(pasted.length, 5)].focus();
+            updateHidden();
+        });
+    });
+
+    let seconds = 600;
+    const countdown = document.getElementById('countdown');
+    setInterval(() => {
+        seconds--;
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        countdown.textContent = m + ':' + s;
+        if (seconds <= 0) {
+            countdown.textContent = 'Expired!';
+            countdown.style.color = '#e74c3c';
+        }
+    }, 1000);
+
+    boxes[0].focus();
+</script>
+
+</body>
+</html>

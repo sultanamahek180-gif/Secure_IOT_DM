@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device Access List</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
@@ -23,15 +19,13 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 30px;
         }
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-        }
+        h1 { text-align: center; margin-bottom: 30px; }
+
         .button-group {
             margin-bottom: 20px;
             text-align: right;
         }
+
         .btn {
             display: inline-block;
             padding: 10px 20px;
@@ -39,156 +33,116 @@
             border-radius: 5px;
             text-decoration: none;
             font-weight: bold;
-            cursor: pointer;
-            border: none;
         }
-        .btn-create {
-            background-color: #28a745;
-            color: white;
-        }
-        .btn-create:hover {
-            background-color: #218838;
-        }
-        .btn-edit {
-            background-color: #007bff;
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-        }
-        .btn-edit:hover {
-            background-color: #0056b3;
-        }
-        .btn-delete {
-            background-color: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-        }
-        .btn-delete:hover {
-            background-color: #c82333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+
+        .btn-create { background-color: #28a745; color: white; }
+        .btn-edit { background-color: #007bff; color: white; }
+        .btn-delete { background-color: #dc3545; color: white; }
+        .btn-gray { background-color: #6c757d; color: white; }
+
+        table { width: 100%; border-collapse: collapse; }
         th {
             background-color: #007bff;
             color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: bold;
+            padding: 12px;
         }
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #ddd;
-        }
-        tr:hover {
-            background-color: #f9f9f9;
-        }
-        .actions {
-            text-align: center;
-        }
-        .empty-message {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            font-size: 16px;
-        }
-        .badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .badge-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .badge-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+        td { padding: 12px; border-bottom: 1px solid #ddd; }
+
+        .badge-success { background:#d4edda; color:#155724; padding:5px 10px; border-radius:20px; }
+        .badge-danger { background:#f8d7da; color:#721c24; padding:5px 10px; border-radius:20px; }
     </style>
 </head>
+
 <body>
 
-<!-- Login / Logout Button Added -->
+<!-- Login / Logout -->
 <div style="position:absolute; top:20px; right:30px;">
     {% if user.is_authenticated %}
-        <span style="margin-right:10px; color:#333; font-weight:bold;">
+        <span style="margin-right:10px; font-weight:bold;">
             Welcome {{ user.username }}
         </span>
-        <a href="{% url 'logout' %}" style="padding:6px 12px; background:#dc3545; color:white; border-radius:4px; text-decoration:none;">
-            Logout
-        </a>
+        <a href="{% url 'logout' %}" class="btn btn-delete">Logout</a>
     {% else %}
-        <a href="{% url 'login' %}" style="padding:6px 12px; background:#007bff; color:white; border-radius:4px; text-decoration:none;">
-            Login
-        </a>
+        <a href="{% url 'login' %}" class="btn btn-edit">Login</a>
     {% endif %}
 </div>
 
-    <div class="container">
-        <h1>Device Access Management</h1>
-        
-        <div class="button-group">
-            <a href="{% url 'deviceaccess_create' %}" class="btn btn-create">+ Add New Access</a>
-            <a href="{% url 'alert_list' %}" class="btn btn-delete">View Alerts</a>
-            <a href="{% url 'devicedata_list' device.device_id %}" 
-       class="btn btn-edit" 
-       style="background-color:#6c757d;">
-        ← Back to Device Data
-    </a>
+<div class="container">
+    <h1>Device Access Management</h1>
 
-        </div>
+    <div class="button-group">
+        <a href="{% url 'deviceaccess_create' %}" class="btn btn-create">+ Add Access</a>
+        <a href="{% url 'alert_list' %}" class="btn btn-delete">Alerts</a>
 
+        <!-- ✅ FIXED BACK BUTTON -->
         {% if accesses %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Device</th>
-                        <th>Can Read</th>
-                        <th>Can Write</th>
-                        <th>Granted At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for access in accesses %}
-                        <tr>
-                            <td>{{ access.user.username }}</td>
-                            <td>{{ access.device.device_name }}</td>
-                            <td>
-                                {% if access.can_read %}
-                                    <span class="badge badge-success">Yes</span>
-                                {% else %}
-                                    <span class="badge badge-danger">No</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if access.can_write %}
-                                    <span class="badge badge-success">Yes</span>
-                                {% else %}
-                                    <span class="badge badge-danger">No</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ access.granted_at|date:"Y-m-d H:i" }}</td>
-                            <td class="actions">
-                                <a href="{% url 'deviceaccess_update' access.access_id %}" class="btn btn-warning">Edit</a>
-                                <a href="{% url 'deviceaccess_delete' access.access_id %}" class="btn btn-delete">Delete</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="empty-message">
-                <p>No device access records found. <a href="{% url 'deviceaccess_create' %}">Create one now</a></p>
-            </div>
+            {% if accesses.0.device and accesses.0.device.device_id %}
+                <a href="{% url 'devicedata_list' accesses.0.device.device_id %}" 
+                   class="btn btn-gray">
+                    ← BACK
+                </a>
+            {% endif %}
         {% endif %}
     </div>
+
+    {% if accesses %}
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Device</th>
+                <th>Read</th>
+                <th>Write</th>
+                <th>Granted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for access in accesses %}
+            <tr>
+                <td>{{ access.user.username }}</td>
+                <td>{{ access.device.device_name }}</td>
+
+                <td>
+                    {% if access.can_read %}
+                        <span class="badge-success">Yes</span>
+                    {% else %}
+                        <span class="badge-danger">No</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if access.can_write %}
+                        <span class="badge-success">Yes</span>
+                    {% else %}
+                        <span class="badge-danger">No</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ access.granted_at|date:"Y-m-d H:i" }}</td>
+
+                <td>
+                    <a href="{% url 'deviceaccess_update' access.access_id %}" class="btn btn-edit">Edit</a>
+                    <a href="{% url 'deviceaccess_delete' access.access_id %}" class="btn btn-delete">Delete</a>
+
+                    <!-- 🔥 EXTRA: View Data Button -->
+                    {% if access.device and access.device.device_id %}
+                        <a href="{% url 'devicedata_list' access.device.device_id %}" class="btn btn-gray">
+                            Data
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+        <p style="text-align:center;">No records found</p>
+    {% endif %}
+
+</div>
+
 </body>
 </html>

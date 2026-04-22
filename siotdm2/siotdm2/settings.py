@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2326ke_%#o$^7#x6_vj8*l%&l38d^4r6^-=wpu*@f)m#jbov-w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'siotdm2app',
     'captcha',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +143,16 @@ SESSION_COOKIE_AGE = 86400
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+TWILIO_ACCOUNT_SID  = os.getenv('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN   = os.getenv('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+TWILIO_VERIFY_SID = os.getenv('TWILIO_VERIFY_SID')

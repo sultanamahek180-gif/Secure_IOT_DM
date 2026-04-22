@@ -11,6 +11,10 @@ db.sqlite3
 
 # Environment variables
 .env/
+# .env  (project root mein — .gitignore mein add karo)
+TWILIO_ACCOUNT_SID=AC2cd1ae920b3c20d326499e6d6297b050
+TWILIO_AUTH_TOKEN=8af067125674f8b1d22f2d7c7e68be6f
+TWILIO_PHONE_NUMBER=9972789246
 
 # Static files
 /staticfiles
